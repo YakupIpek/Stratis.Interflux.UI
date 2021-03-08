@@ -1,0 +1,34 @@
+section {
+  margin: 20px 0 20px 0;
+}
+
+.info-text {
+  font-size: 1.1em;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.logo{
+  width: 200px;
+  margin: 40px 0;
+}
+
+body{
+  background-image: url(images/background.jpg);
+  background-size:cover;
+}
+
+.metamask-logo{
+  width: 28px;
+  margin-top:-4px;
+}
+
+form > .amount input{
+  border-right: none;
+}
+
+form > .amount .input-group-text{
+  background:inherit;
+}
