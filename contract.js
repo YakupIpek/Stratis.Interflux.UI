@@ -4,9 +4,24 @@ class Model {
     this.connecting = ko.observable(false);
     this.metaMaskInstalled = ko.observable();
     this.account = ko.observable('');
+    this.address = ko.observable();
     this.amount = ko.observable();
     this.balance = ko.observable(0);
     this.contractAddress = "0x9d9a8d5a62b62367a850a3322a29ca64bb1626ed";
+    this.tx = ko.observable();
+    this.toast = $('.toast').toast({ autohide: false });
+
+    ethereum.on('accountsChanged', accounts => this.accountsChanged(accounts));
+
+    ethereum.on('chainChanged',chainId => this.chainChanged(chainId));
+  }
+
+  async accountsChanged(accounts) {
+    await this.getAccount();
+  }
+
+  chainChanged(chainId) {
+    window.location.reload();
   }
 
   install() {
@@ -16,17 +31,21 @@ class Model {
   }
 
   async connect() {
-      this.connecting(true);
-      await ethereum.request({ method: 'eth_requestAccounts' }).then(data => this.connecting(false));
-      this.connected(true);
-      $('.collapse').collapse();
+    this.connecting(true);
+    await ethereum.request({ method: 'eth_requestAccounts' }).then(data => this.connecting(false));
+    this.connected(true);
+    $('.collapse').collapse();
 
-      await this.getAccount();
+    await this.getAccount();
   }
 
   async getAccount() {
     var accounts = await ethereum.request({ method: 'eth_accounts' });
     this.account(accounts[0]);
+    await this.refreshBalance();
+  }
+
+  async refreshBalance() {
     var balance = await this.contract.methods.balanceOf(this.account()).call();
     var n = 10n ** 10n;
     balance = (BigInt(balance) / n) * n + 30n * n;
@@ -46,9 +65,8 @@ class Model {
   }
 
   async burnTokens() {
-    var amount = "0";
-    var address = "qWSL5GZsYfiuEHRgMJT5XUS3k9WsWETcKS";
-    var tx = await ethereum.request({
+    var amount = Web3.utils.toWei(this.amount(), "ether")
+    var txid = await ethereum.request({
       method: 'eth_sendTransaction',
       params: [
         {
@@ -56,17 +74,29 @@ class Model {
           to: this.contractAddress,
           value: this.web3.utils.fromDecimal(0),
           //gas: this.web3.utils.fromDecimal(21000),
-          data: this.contract.methods.burn(amount, address).encodeABI(),
-          chainId: '0x3' // Used to prevent transaction reuse across blockchains. Auto-filled by MetaMask.
+          data: this.contract.methods.burn(amount, this.address()).encodeABI(),
+          //chainId: '0x3' // Used to prevent transaction reuse across blockchains. Auto-filled by MetaMask.
         }
       ]
     });
+
+    this.tx({
+      id: txid,
+      amount: this.amount(),
+      url: 'https://ropsten.etherscan.io/tx/' + txid
+    })
+    this.toast.toast("show");
+
+    this.amount(null);
+    this.address(null);
+
+    setTimeout(() => this.refreshBalance(), 10000);
   }
 }
 
 var model = new Model();
-ko.applyBindings(model);
 
 window.addEventListener('DOMContentLoaded', () => {
+  ko.applyBindings(model);
   model.metaMaskInstalled(MetamaskOnboarding.isMetaMaskInstalled());
 });

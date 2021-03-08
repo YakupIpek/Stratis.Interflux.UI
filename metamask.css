@@ -25,10 +25,14 @@ body{
   margin-top:-4px;
 }
 
-form > .amount input{
+form .amount input{
   border-right: none;
 }
 
-form > .amount .input-group-text{
+form .amount .input-group-text{
   background:inherit;
+}
+
+form .fa-address-book {
+  margin-right: 5px;
 }
