@@ -11,9 +11,10 @@ class Model {
     this.tx = ko.observable();
     this.toast = $('.toast').toast({ autohide: false });
 
-    ethereum.on('accountsChanged', accounts => this.accountsChanged(accounts));
-
-    ethereum.on('chainChanged',chainId => this.chainChanged(chainId));
+    if (window.ethereum) {
+      ethereum.on('accountsChanged', accounts => this.accountsChanged(accounts));
+      ethereum.on('chainChanged', chainId => this.chainChanged(chainId));
+    }
   }
 
   async accountsChanged(accounts) {
