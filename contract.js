@@ -17,6 +17,22 @@ class Model {
     }
   }
 
+  async getNetwork() {
+    var chainId = await ethereum.request({ method: 'eth_chainId' });
+    var networks = {
+      '0x1': {
+        name: 'Mainnet',
+        txUrl: txid => 'https://etherscan.io/tx/' + txid
+      },
+      '0x3': {
+        name: 'Ropsten',
+        txUrl: txid => 'https://ropsten.etherscan.io/tx/' + txid
+      }
+    };
+
+    return networks[chainId];
+  }
+
   async accountsChanged(accounts) {
     await this.getAccount();
   }
@@ -74,17 +90,15 @@ class Model {
           from: this.account(),
           to: this.contractAddress,
           value: this.web3.utils.fromDecimal(0),
-          //gas: this.web3.utils.fromDecimal(21000),
-          data: this.contract.methods.burn(amount, this.address()).encodeABI(),
-          //chainId: '0x3' // Used to prevent transaction reuse across blockchains. Auto-filled by MetaMask.
+          data: this.contract.methods.burn(amount, this.address()).encodeABI()
         }
       ]
     });
-
+    var network = await this.getNetwork();
     this.tx({
       id: txid,
       amount: this.amount(),
-      url: 'https://ropsten.etherscan.io/tx/' + txid
+      url: network.txUrl(txid),
     })
     this.toast.toast("show");
 
