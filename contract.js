@@ -108,7 +108,7 @@ class Model {
       params: [
         {
           from: this.account(),
-          to: this.contractAddress,
+          to: this.network.contractAddress,
           value: this.web3.utils.fromDecimal(0),
           data: this.contract.methods.burn(amount, this.address()).encodeABI()
         }
