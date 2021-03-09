@@ -14,6 +14,11 @@ class Model {
     this.chainId = null;
     this.account = ko.observable();
     this.networks = {};
+
+    this.submitAttempted = ko.observable(false);
+    this.isInValidAddress = ko.computed(() => this.submitAttempted() ? !this.isValidAddress() : null);
+    this.isInValidAmount = ko.computed(() => this.submitAttempted() ? !this.isValidAmount() : null);
+
     if (window.ethereum) {
       ethereum.on('accountsChanged', async accounts => await this.updateAccount(accounts));
       ethereum.on('chainChanged', chainId => window.location.reload());
@@ -21,16 +26,16 @@ class Model {
   }
 
   get network() {
-    this.networks =  {
+    this.networks = {
       '0x1': {
         name: 'Mainnet',
         contractAddress: '0xa61AB12Eb1964C5b478283d3233270800674aCe0',
         txUrl: txid => 'https://etherscan.io/tx/' + txid,
         validateAddress: address => {
-          try{
-             var result = base58Check.decode(address);
+          try {
+            var result = base58Check.decode(address);
             return result.prefix[0] == 75;
-          }catch(e){
+          } catch (e) {
             return false;
           }
         }
@@ -40,10 +45,10 @@ class Model {
         contractAddress: '0x9d9a8d5a62b62367a850a3322a29ca64bb1626ed',
         txUrl: txid => 'https://ropsten.etherscan.io/tx/' + txid,
         validateAddress: address => {
-          try{
-             var result = base58Check.decode(address);
-             return result.prefix[0] == 120;
-          }catch(e){
+          try {
+            var result = base58Check.decode(address);
+            return result.prefix[0] == 120;
+          } catch (e) {
             return false;
           }
         }
@@ -64,8 +69,8 @@ class Model {
     await ethereum.request({ method: 'eth_requestAccounts' }).then(data => this.connecting(false));
     this.connected(true);
     $('.collapse').collapse();
-    
-    
+
+
     this.chainId = await ethereum.request({ method: 'eth_chainId' });
     var accounts = await ethereum.request({ method: 'eth_accounts' });
     this.web3 = new Web3(Web3.givenProvider);
@@ -74,7 +79,7 @@ class Model {
     await this.updateAccount(accounts);
   }
 
-  async updateAccount(accounts){
+  async updateAccount(accounts) {
     this.account(accounts[0]);
     await this.refreshBalance();
   }
@@ -92,8 +97,8 @@ class Model {
   }
 
   async burnTokens() {
-
-    if(!this.isValidForm()){
+    this.submitAttempted(true);
+    if (!this.isValidForm()) {
       return;
     }
 
@@ -113,31 +118,31 @@ class Model {
     this.tx({
       id: txid,
       amount: this.amount(),
-      url: network.txUrl(txid)
+      url: this.network.txUrl(txid)
     })
     this.toast.toast("show");
 
     this.amount(null);
     this.address(null);
-
+    this.submitAttempted(false);
     setTimeout(() => this.refreshBalance(), 5000);
   }
 
-  isValidForm(){
+  isValidForm() {
     return this.isValidAddress() && this.isValidAmount();
   }
 
-  isValidAddress(){
+  isValidAddress() {
     return this.network.validateAddress(this.address());
   }
 
-  isValidAmount(){
-    var amount = this.toWei(this.amount());
-    var balance = this.toWei(this.balance());
-    return amount > 0 && this.amount() < balance;
+  isValidAmount() {
+    var amount = BigInt(this.toWei(this.amount() || "0"));
+    var balance = BigInt(this.toWei(this.balance()));
+    return amount > 0 && amount <= balance;
   }
 
-  toWei(amount){
+  toWei(amount) {
     return Web3.utils.toWei(amount, "ether");
   }
 }
