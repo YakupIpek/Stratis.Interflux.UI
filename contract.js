@@ -7,38 +7,50 @@ class Model {
     this.address = ko.observable();
     this.amount = ko.observable();
     this.balance = ko.observable(0);
-    this.contractAddress = "0x9d9a8d5a62b62367a850a3322a29ca64bb1626ed";
     this.tx = ko.observable();
     this.toast = $('.toast').toast({ autohide: false });
-
+    this.contract = null;
+    this.web3 = null;
+    this.chainId = null;
+    this.account = ko.observable();
+    this.networks = {};
     if (window.ethereum) {
-      ethereum.on('accountsChanged', accounts => this.accountsChanged(accounts));
-      ethereum.on('chainChanged', chainId => this.chainChanged(chainId));
+      ethereum.on('accountsChanged', async accounts => await this.updateAccount(accounts));
+      ethereum.on('chainChanged', chainId => window.location.reload());
     }
   }
 
-  async getNetwork() {
-    var chainId = await ethereum.request({ method: 'eth_chainId' });
-    var networks = {
+  get network() {
+    this.networks =  {
       '0x1': {
         name: 'Mainnet',
-        txUrl: txid => 'https://etherscan.io/tx/' + txid
+        contractAddress: '0xa61AB12Eb1964C5b478283d3233270800674aCe0',
+        txUrl: txid => 'https://etherscan.io/tx/' + txid,
+        validateAddress: address => {
+          try{
+             var result = base58Check.decode(address);
+            return result.prefix[0] == 75;
+          }catch(e){
+            return false;
+          }
+        }
       },
       '0x3': {
         name: 'Ropsten',
-        txUrl: txid => 'https://ropsten.etherscan.io/tx/' + txid
+        contractAddress: '0x9d9a8d5a62b62367a850a3322a29ca64bb1626ed',
+        txUrl: txid => 'https://ropsten.etherscan.io/tx/' + txid,
+        validateAddress: address => {
+          try{
+             var result = base58Check.decode(address);
+             return result.prefix[0] == 120;
+          }catch(e){
+            return false;
+          }
+        }
       }
     };
 
-    return networks[chainId];
-  }
-
-  async accountsChanged(accounts) {
-    await this.getAccount();
-  }
-
-  chainChanged(chainId) {
-    window.location.reload();
+    return this.networks[this.chainId];
   }
 
   install() {
@@ -52,12 +64,17 @@ class Model {
     await ethereum.request({ method: 'eth_requestAccounts' }).then(data => this.connecting(false));
     this.connected(true);
     $('.collapse').collapse();
+    
+    
+    this.chainId = await ethereum.request({ method: 'eth_chainId' });
+    var accounts = await ethereum.request({ method: 'eth_accounts' });
+    this.web3 = new Web3(Web3.givenProvider);
+    this.contract = new this.web3.eth.Contract(contractMetadata, this.network.contractAddress);
 
-    await this.getAccount();
+    await this.updateAccount(accounts);
   }
 
-  async getAccount() {
-    var accounts = await ethereum.request({ method: 'eth_accounts' });
+  async updateAccount(accounts){
     this.account(accounts[0]);
     await this.refreshBalance();
   }
@@ -70,19 +87,17 @@ class Model {
     this.balance(balance);
   }
 
-  get web3() {
-    return new Web3(Web3.givenProvider);
-  }
-  get contract() {
-    return new this.web3.eth.Contract(contractMetadata, this.contractAddress);
-  }
-
-  async setBalance() {
+  setBalance() {
     this.amount(this.balance());
   }
 
   async burnTokens() {
-    var amount = Web3.utils.toWei(this.amount(), "ether")
+
+    if(!this.isValidForm()){
+      return;
+    }
+
+    var amount = this.toWei(this.amount())
     var txid = await ethereum.request({
       method: 'eth_sendTransaction',
       params: [
@@ -94,18 +109,36 @@ class Model {
         }
       ]
     });
-    var network = await this.getNetwork();
+
     this.tx({
       id: txid,
       amount: this.amount(),
-      url: network.txUrl(txid),
+      url: network.txUrl(txid)
     })
     this.toast.toast("show");
 
     this.amount(null);
     this.address(null);
 
-    setTimeout(() => this.refreshBalance(), 10000);
+    setTimeout(() => this.refreshBalance(), 5000);
+  }
+
+  isValidForm(){
+    return this.isValidAddress() && this.isValidAmount();
+  }
+
+  isValidAddress(){
+    return this.network.validateAddress(this.address());
+  }
+
+  isValidAmount(){
+    var amount = this.toWei(this.amount());
+    var balance = this.toWei(this.balance());
+    return amount > 0 && this.amount() < balance;
+  }
+
+  toWei(amount){
+    return Web3.utils.toWei(amount, "ether");
   }
 }
 
