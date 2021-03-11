@@ -1,0 +1,45 @@
+section 
+  margin: 20px 0 20px 0
+
+.info-text 
+  font-size: 1.1em
+
+.full-width 
+  width: 100%
+
+.logo
+  width: 200px
+  margin: 40px 0
+
+body
+  background-image: url(images/background.jpg)
+  background-size: cover
+
+
+.metamask-logo
+  width: 28px
+  margin-top: -4px
+
+
+form 
+  .fa-address-book 
+    margin-right: 5px
+  &:not(.was-validated)
+      .amount 
+        input
+          &.is-valid + .input-group-append
+            .input-group-text
+              border-color: #28a745
+          &.is-invalid + .input-group-append
+            .input-group-text 
+              border-color: #dc3545
+
+  .amount 
+    input 
+      border-right: none
+    .input-group-append
+      .input-group-text
+        background: inherit
+        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out
+
+        
