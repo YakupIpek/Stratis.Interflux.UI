@@ -152,4 +152,6 @@ var model = new Model();
 window.addEventListener('DOMContentLoaded', () => {
   ko.applyBindings(model);
   model.metaMaskInstalled(MetamaskOnboarding.isMetaMaskInstalled());
+
+  $('[data-toggle="tooltip"]').tooltip();
 });

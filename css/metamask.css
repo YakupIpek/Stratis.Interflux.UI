@@ -16,7 +16,7 @@ section {
 }
 
 body {
-  background-image: url(images/background.jpg);
+  background-image: url(../images/background.jpg);
   background-size: cover;
 }
 
@@ -27,19 +27,6 @@ body {
 
 form .fa-address-book {
   margin-right: 5px;
-}
-form:not(.was-validated) .amount input.is-valid + .input-group-append .input-group-text {
-  border-color: #28a745;
-}
-form:not(.was-validated) .amount input.is-invalid + .input-group-append .input-group-text {
-  border-color: #dc3545;
-}
-form .amount input {
-  border-right: none;
-}
-form .amount .input-group-append .input-group-text {
-  background: inherit;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 /*# sourceMappingURL=metamask.css.map */
