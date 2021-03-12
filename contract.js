@@ -10,15 +10,13 @@ class Model {
     this.tx = ko.observable();
     this.toast = $('.toast').toast({ autohide: false });
     this.contract = null;
-    this.web3 = null;
+    this.web3 = new Web3(Web3.givenProvider);
     this.chainId = null;
     this.account = ko.observable();
-    this.networks = {};
-
     this.submitAttempted = ko.observable(false);
     this.isInValidAddress = ko.computed(() => this.submitAttempted() ? !this.isValidAddress() : null);
     this.isInValidAmount = ko.computed(() => this.submitAttempted() ? !this.isValidAmount() : null);
-
+    this.networkName = ko.computed(() => this.account() ? this.network.name : null);
     if (window.ethereum) {
       ethereum.on('accountsChanged', async accounts => await this.updateAccount(accounts));
       ethereum.on('chainChanged', chainId => window.location.reload());
@@ -26,9 +24,9 @@ class Model {
   }
 
   get network() {
-    this.networks = {
+    var networks = {
       '0x1': {
-        name: 'Mainnet',
+        name: 'Main',
         contractAddress: '0xa61AB12Eb1964C5b478283d3233270800674aCe0',
         txUrl: txid => 'https://etherscan.io/tx/' + txid,
         validateAddress: address => {
@@ -55,7 +53,7 @@ class Model {
       }
     };
 
-    return this.networks[this.chainId];
+    return networks[this.chainId];
   }
 
   install() {
@@ -66,14 +64,17 @@ class Model {
 
   async connect() {
     this.connecting(true);
-    await ethereum.request({ method: 'eth_requestAccounts' }).then(data => this.connecting(false));
-    this.connected(true);
-    $('.collapse').collapse();
-
+    await ethereum.request({ method: 'eth_requestAccounts' }).catch(data => this.connecting(false));
 
     this.chainId = await ethereum.request({ method: 'eth_chainId' });
     var accounts = await ethereum.request({ method: 'eth_accounts' });
-    this.web3 = new Web3(Web3.givenProvider);
+
+    if (this.network == null){
+      this.connecting(false);
+      return;
+    }
+    this.connected(true);
+    $('.collapse').collapse();
     this.contract = new this.web3.eth.Contract(contractMetadata, this.network.contractAddress);
 
     await this.updateAccount(accounts);
@@ -128,7 +129,7 @@ class Model {
     setTimeout(() => this.refreshBalance(), 5000);
   }
 
-  async addWallet(){
+  async addWallet() {
     await ethereum.request({
       method: 'wallet_watchAsset',
       params: {
