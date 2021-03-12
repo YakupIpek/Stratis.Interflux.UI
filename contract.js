@@ -128,6 +128,21 @@ class Model {
     setTimeout(() => this.refreshBalance(), 5000);
   }
 
+  async addWallet(){
+    await ethereum.request({
+      method: 'wallet_watchAsset',
+      params: {
+        type: 'ERC20',
+        options: {
+          address: model.network.contractAddress,
+          symbol: 'WSTRAX',
+          decimals: 18,
+          image: 'https://www.stratisplatform.com/wp-content/themes/stratis-platform/resources/images/logo-gradient-alt.svg',
+        },
+      },
+    });
+  }
+
   isValidForm() {
     return this.isValidAddress() && this.isValidAmount();
   }

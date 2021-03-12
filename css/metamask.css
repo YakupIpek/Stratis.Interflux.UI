@@ -20,13 +20,29 @@ body {
   background-size: cover;
 }
 
+main {
+  max-width: 600px;
+  min-width: 420px;
+}
+
 .metamask-logo {
   width: 28px;
   margin-top: -4px;
 }
 
+.container {
+  max-width: 600px;
+  min-width: 420px;
+}
+
 form .fa-address-book {
   margin-right: 5px;
+}
+form .add-wallet {
+  font-style: italic;
+  font-weight: 500;
+  font-size: 85%;
+  text-align: center;
 }
 
 /*# sourceMappingURL=metamask.css.map */
