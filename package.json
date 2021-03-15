@@ -4,10 +4,7 @@
   "description": "Stratis interflux bridge metamask integration.",
   "scripts": {
     "deploy": "./deploy.sh",
-    "lint": "eslint . --ext js,json",
-    "lint:fix": "eslint . --fix --ext js,json",
     "serve": "static-server . --port 9011",
-    "test": "yarn lint",
     "sass-compile":"sass css",
     "sass-watch":"sass --watch css"
   },
