@@ -5,8 +5,8 @@
   "scripts": {
     "deploy": "./deploy.sh",
     "serve": "static-server . --port 9011",
-    "sass-compile":"sass css",
-    "sass-watch":"sass --watch css"
+    "sass-compile":"sass --style=compressed css",
+    "sass-watch":"sass --watch --style=compressed css"
   },
   "repository": {
     "type": "git",
