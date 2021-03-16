@@ -9,7 +9,6 @@ class Model {
     this.balance = ko.observable(0);
     this.tx = ko.observable();
     this.toast = $('.toast').toast({ autohide: false });
-    this.collapseEl = $('.collapse');
     this.contract = null;
     this.web3 = new Web3(Web3.givenProvider);
     this.chainId = null;
@@ -83,7 +82,6 @@ class Model {
     if(accounts.length == 0)
     {
       this.connected(false);
-      //this.collapseEl.collapse('hide');
       $('.collapse').collapse('hide');
       return;
     }
