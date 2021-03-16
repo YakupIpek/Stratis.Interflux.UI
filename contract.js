@@ -9,6 +9,7 @@ class Model {
     this.balance = ko.observable(0);
     this.tx = ko.observable();
     this.toast = $('.toast').toast({ autohide: false });
+    this.collapseEl = $('.collapse');
     this.contract = null;
     this.web3 = new Web3(Web3.givenProvider);
     this.chainId = null;
@@ -16,44 +17,11 @@ class Model {
     this.submitAttempted = ko.observable(false);
     this.isInValidAddress = ko.computed(() => this.submitAttempted() ? !this.isValidAddress() : null);
     this.isInValidAmount = ko.computed(() => this.submitAttempted() ? !this.isValidAmount() : null);
-    this.networkName = ko.computed(() => this.account() ? this.network.name : null);
+    this.networkName = ko.computed(() => this.connected() ? this.network.name : null);
     if (window.ethereum) {
       ethereum.on('accountsChanged', async accounts => await this.updateAccount(accounts));
       ethereum.on('chainChanged', chainId => window.location.reload());
     }
-  }
-
-  get network() {
-    var networks = {
-      '0x1': {
-        name: 'Main',
-        contractAddress: '0xa61AB12Eb1964C5b478283d3233270800674aCe0',
-        txUrl: txid => 'https://etherscan.io/tx/' + txid,
-        validateAddress: address => {
-          try {
-            var result = base58Check.decode(address);
-            return result.prefix[0] == 75;
-          } catch (e) {
-            return false;
-          }
-        }
-      },
-      '0x3': {
-        name: 'Ropsten',
-        contractAddress: '0x9d9a8d5a62b62367a850a3322a29ca64bb1626ed',
-        txUrl: txid => 'https://ropsten.etherscan.io/tx/' + txid,
-        validateAddress: address => {
-          try {
-            var result = base58Check.decode(address);
-            return result.prefix[0] == 120;
-          } catch (e) {
-            return false;
-          }
-        }
-      }
-    };
-
-    return networks[this.chainId];
   }
 
   install() {
@@ -63,24 +31,62 @@ class Model {
   }
 
   async connect() {
-    this.connecting(true);
-    await ethereum.request({ method: 'eth_requestAccounts' }).catch(data => this.connecting(false));
+    try {
+      this.connecting(true);
+      var accounts = await ethereum.request({ method: 'eth_requestAccounts' });
 
-    this.chainId = await ethereum.request({ method: 'eth_chainId' });
-    var accounts = await ethereum.request({ method: 'eth_accounts' });
+      this.chainId = await ethereum.request({ method: 'eth_chainId' });
 
-    if (this.network == null){
-      this.connecting(false);
-      return;
+      this.contract = new this.web3.eth.Contract(contractMetadata, this.network.contractAddress);
+
+      await this.updateAccount(accounts);
+
+      this.connected(true);
+      $('.collapse').collapse('toggle');
+
+    } catch { }
+
+    this.connecting(false);
+
+  }
+
+  validateAddress(address, prefix) {
+    try {
+      var result = base58Check.decode(address);
+      return result.prefix[0] == prefix;
+    } catch (e) {
+      return false;
     }
-    this.connected(true);
-    $('.collapse').collapse();
-    this.contract = new this.web3.eth.Contract(contractMetadata, this.network.contractAddress);
+  }
 
-    await this.updateAccount(accounts);
+  get network() {
+
+    var networks = {
+      '0x1': {
+        name: 'Main',
+        contractAddress: '0xa61AB12Eb1964C5b478283d3233270800674aCe0',
+        txUrl: txid => 'https://etherscan.io/tx/' + txid,
+        validateAddress: address => this.validateAddress(address, 75)
+      },
+      '0x3': {
+        name: 'Ropsten',
+        contractAddress: '0x9d9a8d5a62b62367a850a3322a29ca64bb1626ed',
+        txUrl: txid => 'https://ropsten.etherscan.io/tx/' + txid,
+        validateAddress: address => this.validateAddress(address, 120)
+      }
+    };
+
+    return networks[this.chainId];
   }
 
   async updateAccount(accounts) {
+    if(accounts.length == 0)
+    {
+      this.connected(false);
+      //this.collapseEl.collapse('hide');
+      $('.collapse').collapse('hide');
+      return;
+    }
     this.account(accounts[0]);
     await this.refreshBalance();
   }
