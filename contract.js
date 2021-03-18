@@ -63,7 +63,7 @@ class Model {
     var networks = {
       '0x1': {
         name: 'Main',
-        contractAddress: '0xa61AB12Eb1964C5b478283d3233270800674aCe0',
+        contractAddress: '0xa3c22370de5f9544f0c4de126b1e46ceadf0a51b',
         txUrl: txid => 'https://etherscan.io/tx/' + txid,
         validateAddress: address => this.validateAddress(address, 75)
       },
