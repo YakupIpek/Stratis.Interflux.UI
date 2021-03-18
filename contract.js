@@ -92,7 +92,7 @@ class Model {
   async refreshBalance() {
     var balance = await this.contract.methods.balanceOf(this.account()).call();
     var n = 10n ** 10n;
-    balance = (BigInt(balance) / n) * n + 30n * n;
+    balance = (BigInt(balance) / n) * n;//drop value under satoshi
     balance = Web3.utils.fromWei(balance.toString(), "ether");
     this.balance(balance);
   }
