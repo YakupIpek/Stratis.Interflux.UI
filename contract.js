@@ -18,7 +18,7 @@ class Model {
     this.isInValidAmount = ko.computed(() => this.submitAttempted() ? !this.isValidAmount() : null);
     this.networkName = ko.computed(() => this.connected() ? this.network.name : null);
     if (window.ethereum) {
-      ethereum.on('accountsChanged', async accounts => await this.updateAccount(accounts));
+      ethereum.on('accountsChanged', accounts => this.updateAccount(accounts));
       ethereum.on('chainChanged', chainId => window.location.reload());
     }
   }
