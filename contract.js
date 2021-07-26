@@ -69,7 +69,7 @@ class Model {
       },
       '0x3': {
         name: 'Ropsten',
-        contractAddress: '0x9d9a8d5a62b62367a850a3322a29ca64bb1626ed',
+        contractAddress: '0xde09a7cb4c7631f243e5a5454cbb02404aea65e7',
         txUrl: txid => 'https://ropsten.etherscan.io/tx/' + txid,
         validateAddress: address => this.validateAddress(address, 120)
       }
